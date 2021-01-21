@@ -1,0 +1,46 @@
+#!/bin/bash
+
+add_project() {
+  PROJECT=$1
+  PROJ_PATH=$2
+
+  echo "$PROJECT = $PROJ_PATH" >> $HOME/.workon
+  touch "$PROJ_PATH/.workon"
+
+  edit_project $1
+}
+
+edit_project() {
+  PROJECT_BASE_DIR=$(cat $HOME/.workon | grep "$1 = " | awk -F= '{print $2}' | xargs)
+  $EDITOR "$PROJECT_BASE_DIR/.workon"
+}
+
+list_projects() {
+  cat $HOME/.workon | sed '/^$/d' | awk -F= '{print $1}' | xargs -0 echo -n
+}
+
+run_project() {
+  export CURRENT_PROJECT=$1
+
+  PROJECT_BASE_DIR=$(cat $HOME/.workon | grep "$CURRENT_PROJECT = " | awk -F= '{print $2}' | xargs)
+
+  if [[ -f "$PROJECT_BASE_DIR/.workon" ]]; then
+    PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
+    source "$PROJECT_BASE_DIR/.workon"
+    cd $PROJECT_ROOT_DIR
+
+    /usr/local/bin/fish
+  else
+    echo "Project $CURRENT_PROJECT is not defined. Please set it in $HOME/.workon and create $PROJECT_BASE_DIR/.workon"
+  fi
+}
+
+if [[ "$1" == "add" ]]; then
+  add_project $2 $3
+elif [[ "$1" == "edit" ]]; then
+  edit_project $2
+elif [[ "$1" == "list" ]]; then
+  list_projects
+else
+  run_project $1
+fi
