@@ -29,7 +29,7 @@ run_project() {
     source "$PROJECT_BASE_DIR/.workon"
     cd $PROJECT_ROOT_DIR
 
-    /usr/local/bin/fish
+    exec $SHELL
   else
     echo "Project $CURRENT_PROJECT is not defined. Please set it in $HOME/.workon and create $PROJECT_BASE_DIR/.workon"
   fi
