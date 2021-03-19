@@ -42,6 +42,20 @@ check_for_config() {
   fi
 }
 
+usage() {
+  cat <<EOF
+Usage:  $0 add <project> <project_path>
+	     Create a project entry named <project> and edit the project script
+             in <project_path>
+        $0 edit <project>
+             Edit the project script in <project_path>
+        $0 list
+             List projects defined in $HOME/.workon
+        $0 <project>
+             Start a shell in <project>'s defined path"
+EOF
+}
+
 if [[ "$1" == "add" ]]; then
   add_project $2 $3
 elif [[ "$1" == "edit" ]]; then
@@ -50,6 +64,8 @@ elif [[ "$1" == "edit" ]]; then
 elif [[ "$1" == "list" ]]; then
   check_for_config
   list_projects
+elif [[ "$1" == "help" ]]; then
+  usage
 else
   check_for_config
   run_project $1
