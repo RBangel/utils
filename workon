@@ -35,12 +35,22 @@ run_project() {
   fi
 }
 
+check_for_config() {
+  if [ ! -f $HOME/.workon ]; then
+    echo "No projects configured! Add a project before use."
+    exit
+  fi
+}
+
 if [[ "$1" == "add" ]]; then
   add_project $2 $3
 elif [[ "$1" == "edit" ]]; then
+  check_for_config
   edit_project $2
 elif [[ "$1" == "list" ]]; then
+  check_for_config
   list_projects
 else
+  check_for_config
   run_project $1
 fi
