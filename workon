@@ -1,42 +1,60 @@
 #!/bin/bash
 
+CONFIG_FILE_NAME=.workon.conf
+PROJECT_LIST_DIR=$HOME/.workon
+
+project_base_dir() {
+  PROJECT=$1
+  echo "$PROJECT_LIST_DIR/$PROJECT"
+}
+
 add_project() {
   PROJECT=$1
   PROJ_PATH=$2
 
-  echo "$PROJECT = $PROJ_PATH" >> $HOME/.workon
-  touch "$PROJ_PATH/.workon"
+  ABS_PROJ_PATH=$( cd "$PROJ_PATH" && pwd )
+  echo "Adding $PROJECT as $ABS_PROJ_PATH"
+  ln -s $ABS_PROJ_PATH $PROJECT_LIST_DIR/$PROJECT
 
   edit_project $1
 }
 
 edit_project() {
-  PROJECT_BASE_DIR=$(cat $HOME/.workon | grep "$1 = " | awk -F= '{print $2}' | xargs)
-  $EDITOR "$PROJECT_BASE_DIR/.workon"
+  if [[ "$EDITOR" == "" ]]; then
+    echo "No editor defined. Please set \$EDITOR"
+    exit
+  fi
+
+  PROJECT=$1
+  BASE_DIR=$(project_base_dir $PROJECT)
+  CONFIG_FILE="$BASE_DIR/$CONFIG_FILE_NAME"
+
+  $EDITOR $CONFIG_FILE
 }
 
 list_projects() {
-  cat $HOME/.workon | sed '/^$/d' | awk -F= '{print $1}' | xargs -0 echo -n
+  ls -1 $PROJECT_LIST_DIR
 }
 
 run_project() {
   export CURRENT_PROJECT=$1
 
-  PROJECT_BASE_DIR=$(cat $HOME/.workon | grep "$CURRENT_PROJECT = " | awk -F= '{print $2}' | xargs)
+  PROJECT_BASE_DIR="$PROJECT_LIST_DIR/$CURRENT_PROJECT"
 
-  if [[ -f "$PROJECT_BASE_DIR/.workon" ]]; then
+  if [[ -f "$PROJECT_BASE_DIR/$CONFIG_FILE_NAME" ]]; then
+    cd $PROJECT_BASE_DIR
     PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
-    source "$PROJECT_BASE_DIR/.workon"
-    cd $PROJECT_ROOT_DIR
+    source $CONFIG_FILE_NAME
 
+    cd $PROJECT_ROOT_DIR
     exec $SHELL
   else
-    echo "Project $CURRENT_PROJECT is not defined. Please set it in $HOME/.workon and create $PROJECT_BASE_DIR/.workon"
+    echo "The $CURRENT_PROJECT project is not defined. Please add it first."
   fi
 }
 
 check_for_config() {
-  if [ ! -f $HOME/.workon ]; then
+  if [ ! -d $PROJECT_LIST_DIR ]; then
     echo "No projects configured! Add a project before use."
     exit
   fi
@@ -50,7 +68,7 @@ Usage:  $0 add <project> <project_path>
         $0 edit <project>
              Edit the project script in <project_path>
         $0 list
-             List projects defined in $HOME/.workon
+             List projects defined in $PROJECT_LIST_DIR
         $0 <project>
              Start a shell in <project>'s defined path"
 EOF
