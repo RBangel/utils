@@ -40,16 +40,19 @@ run_project() {
   export CURRENT_PROJECT=$1
 
   PROJECT_BASE_DIR="$PROJECT_LIST_DIR/$CURRENT_PROJECT"
-
-  if [[ -f "$PROJECT_BASE_DIR/$CONFIG_FILE_NAME" ]]; then
+  
+  if [[ -d "$PROJECT_BASE_DIR" ]]; then
     cd $PROJECT_BASE_DIR
     PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
-    source $CONFIG_FILE_NAME
+
+    if [[ -f "$CONFIG_FILE_NAME" ]]; then
+      source $CONFIG_FILE_NAME
+    else
+      echo "No configuration file available. Create $PROJECT_BASE_DIR/$CONFIG_FILE_NAME if configuration is needed."
+    fi
 
     cd $PROJECT_ROOT_DIR
     exec $SHELL
-  else
-    echo "The $CURRENT_PROJECT project is not defined. Please add it first."
   fi
 }
 
