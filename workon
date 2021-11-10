@@ -30,7 +30,15 @@ edit_project() {
   BASE_DIR=$(project_base_dir $PROJECT)
   CONFIG_FILE="$BASE_DIR/$CONFIG_FILE_NAME"
 
+  touch $CONFIG_FILE
   $EDITOR $CONFIG_FILE
+}
+
+init() {
+  if [[ -f $HOME/.workon/.workon.conf ]]; then
+    echo "source $HOME/.workon/.workon.conf"
+    echo "/bin/rm $HOME/.workon/.workon.conf"
+  fi
 }
 
 list_projects() {
@@ -45,9 +53,10 @@ run_project() {
   if [[ -f "$PROJECT_BASE_DIR/$CONFIG_FILE_NAME" ]]; then
     cd $PROJECT_BASE_DIR
     PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
+    cp $CONFIG_FILE_NAME ~/.workon/.workon.conf
     source $CONFIG_FILE_NAME
 
-    cd $PROJECT_ROOT_DIR
+    cd $(readlink $PROJECT_ROOT_DIR)
     exec $SHELL
   else
     echo "The $CURRENT_PROJECT project is not defined. Please add it first."
@@ -87,6 +96,8 @@ if [[ "$COMMAND" == "add" ]]; then
 elif [[ "$COMMAND" == "edit" ]]; then
   check_for_config
   edit_project $1
+elif [[ "$COMMAND" == "init" ]]; then
+  init
 elif [[ "$COMMAND" == "list" ]]; then
   check_for_config
   list_projects
