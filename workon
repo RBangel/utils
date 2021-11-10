@@ -14,9 +14,10 @@ add_project() {
 
   ABS_PROJ_PATH=$( cd "$PROJ_PATH" && pwd )
   echo "Adding $PROJECT as $ABS_PROJ_PATH"
+  mkdir -p $PROJECT_LIST_DIR
   ln -s $ABS_PROJ_PATH $PROJECT_LIST_DIR/$PROJECT
 
-  edit_project $1
+  edit_project $PROJECT
 }
 
 edit_project() {
@@ -61,30 +62,37 @@ check_for_config() {
 }
 
 usage() {
+  shell_command=$(basename $0)
   cat <<EOF
-Usage:  $0 add <project> <project_path>
+Usage:  $shell_command add <project> <project_path>
 	     Create a project entry named <project> and edit the project script
              in <project_path>
-        $0 edit <project>
+        $shell_command edit <project>
              Edit the project script in <project_path>
-        $0 list
+        $shell_command list
              List projects defined in $PROJECT_LIST_DIR
-        $0 <project>
+        $shell_command <project>
              Start a shell in <project>'s defined path"
 EOF
 }
 
-if [[ "$1" == "add" ]]; then
-  add_project $2 $3
-elif [[ "$1" == "edit" ]]; then
+COMMAND="help"
+if [[ "$1" != "" ]]; then
+  COMMAND="$1"
+  shift
+fi
+
+if [[ "$COMMAND" == "add" ]]; then
+  add_project $1 $2
+elif [[ "$COMMAND" == "edit" ]]; then
   check_for_config
-  edit_project $2
-elif [[ "$1" == "list" ]]; then
+  edit_project $1
+elif [[ "$COMMAND" == "list" ]]; then
   check_for_config
   list_projects
-elif [[ "$1" == "help" ]]; then
+elif [[ "$COMMAND" == "help" ]]; then
   usage
 else
   check_for_config
-  run_project $1
+  run_project $COMMAND
 fi
