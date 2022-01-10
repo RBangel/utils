@@ -1,0 +1,40 @@
+#!/bin/bash
+
+is_git_repo() {
+  git status 1>/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo 'true'
+  else
+    echo 'false'
+  fi
+}
+
+pull_current_dir() {
+  echo '----------------------------'
+  echo $(basename $(pwd))
+  echo '----------------------------'
+
+  git pull 2> >(grep -v 'remote:')
+}
+
+if [[ "$(is_git_repo)" == 'true' ]]; then
+  pull_current_dir
+  # echo '----------------------------'
+  # echo $(basename $(pwd))
+  # echo '----------------------------'
+
+  # git pull | grep -v 'remote:'
+  # if [[ $? -eq 0 ]]; then
+  #   echo 'success'
+  # else
+  #   echo 'failed'
+  # fi
+else
+  echo 'Multi Repo'
+  basedir=$(pwd)
+  for dir in $(find . -type d -depth 1); do
+    cd $dir
+    pull_current_dir
+    cd $basedir
+  done
+fi
