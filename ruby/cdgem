@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+
+gem = ARGV.first
+gemdir = Pathname.new(`dirname $(bundle exec gem which #{gem})`.chomp).expand_path
+
+while gemdir
+  raise "Failed to find #{gem}" if gemdir.to_s == '/'
+  break if gemdir.basename.to_s.gsub('_', '').include? gem.gsub('_', '')
+
+  gemdir = gemdir.dirname
+end
+
+Dir.chdir gemdir
+exec '/bin/zsh'
