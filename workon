@@ -54,7 +54,6 @@ run_project() {
     cd $PROJECT_BASE_DIR
     PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
     cp $CONFIG_FILE_NAME ~/.workon/.workon.conf
-    source $CONFIG_FILE_NAME
 
     cd $(readlink $PROJECT_ROOT_DIR)
     exec $SHELL
