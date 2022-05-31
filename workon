@@ -84,6 +84,11 @@ Usage:  $shell_command add <project> <project_path>
 EOF
 }
 
+install_instructions() {
+  echo "Add the following line to your bashrc/zshrc file."
+  echo "source <(workon init)"
+}
+
 COMMAND="help"
 if [[ "$1" != "" ]]; then
   COMMAND="$1"
@@ -97,6 +102,8 @@ elif [[ "$COMMAND" == "edit" ]]; then
   edit_project $1
 elif [[ "$COMMAND" == "init" ]]; then
   init
+elif [[ "$COMMAND" == "install" ]]; then
+  install_instructions
 elif [[ "$COMMAND" == "list" ]]; then
   check_for_config
   list_projects
