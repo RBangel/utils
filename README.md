@@ -8,3 +8,6 @@ A tool similar to direnv that adds the abiility to run arbitrary shell commands.
 For example, ensuring that a particular postgres database is running
 
 To install, copy the contents of `init.bash` into your zshrc file after the PATH being set.
+
+## Useful Community Projects
+https://github.com/unixorn/git-extra-commands
