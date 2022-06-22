@@ -107,6 +107,8 @@ elif [[ "$COMMAND" == "install" ]]; then
 elif [[ "$COMMAND" == "list" ]]; then
   check_for_config
   list_projects
+elif [[ "$COMMAND" == "status" ]]; then
+  echo "Current project: ${CURRENT_PROJECT}"
 elif [[ "$COMMAND" == "help" ]]; then
   usage
 else
