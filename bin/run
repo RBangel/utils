@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+
+services = {
+  backend: {
+    path: "~/code/backend",
+  },
+  accountant: {
+    path: "~/code/accountant",
+  },
+  services: {
+    path: "~/code/backend",
+    cmd: "make services"
+  },
+}
+
+default_command = "iex -S mix phx.server"
+
+service_name = ARGV.first
+orig_service_name = ARGV.first
+service = services[service_name.to_sym]
+service_path = services.dig service_name.to_sym, :path
+
+def with_filter(command)
+  io = IO.popen(command, 'r+')
+  begin
+    stdout, $stdout = $stdout, io
+    yield rescue nil
+  ensure
+    $stdout = stdout
+  end
+  io.close_write
+  io.readlines.map(&:chomp)
+end
+
+unless service_path
+  service_name = with_filter('fzf -m') do
+    puts services.keys
+  end
+end
+
+unless service_path
+  puts "\"#{orig_service_name}\" service not found"
+  exit -1
+end
+
+workpath = Pathname.new(service_path).expand_path
+Dir.chdir workpath
+command = service[:cmd] || default_command
+exec "source ./.workon.conf; #{command}"
+
+
+
+
+
+
+
+# with_filter('fzf -m') do
+#   1000.times do |n|
+#     puts n
+#     sleep 0.005
+#   end
+# end
