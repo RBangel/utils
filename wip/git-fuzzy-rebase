@@ -1,0 +1,6 @@
+#!/bin/bash
+
+commit=$(git log --oneline HEAD@{push}..HEAD | fzf --preview 'git show {+1}' | awk '{prit $1}')
+
+echo $commit
+# git rebase -i $commit
