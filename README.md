@@ -9,5 +9,11 @@ For example, ensuring that a particular postgres database is running
 
 To install, copy the contents of `init.bash` into your zshrc file after the PATH being set.
 
+## Language Support
+
+### Elixir
+
+Provides a .iex.exs starter
+
 ## Useful Community Projects
 https://github.com/unixorn/git-extra-commands
