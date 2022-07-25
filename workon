@@ -85,8 +85,13 @@ EOF
 }
 
 install_instructions() {
-  echo "Add the following line to your bashrc/zshrc file."
-  echo "source <(workon init)"
+  if [[ "$SHELL" == *"fish"* ]]; then
+    echo "Add the following line to your config.fish file."
+    echo 'source (workon init | psub)'
+  else
+    echo "Add the following line to your bashrc/zshrc file."
+    echo 'source <(workon init)'
+  fi
 }
 
 COMMAND="help"
