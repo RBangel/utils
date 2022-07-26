@@ -1,11 +1,23 @@
+# Prerequisites
+brew "mas"
 tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "homebrew/cask-fonts"
 tap "homebrew/core"
 tap "homebrew/services"
-tap "puma/puma"
-tap "stripe/stripe-cli"
 
+# 3rd Party services
+tap "stripe/stripe-cli"
+brew "stripe/stripe-cli/stripe"
+
+# Development Tools
+tap "puma/puma"
+brew "puma/puma/puma-dev"
+
+# Shells
+brew "fish"
+
+# Misc
 brew "autoconf"
 brew "automake"
 brew "coreutils"
@@ -49,8 +61,6 @@ brew "tmux"
 brew "tree"
 brew "unzip"
 brew "wxwidgets"
-brew "puma/puma/puma-dev"
-brew "stripe/stripe-cli/stripe"
 
 cask "barrier"
 cask "font-fira-code-nerd-font"
