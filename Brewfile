@@ -60,6 +60,7 @@ brew "tmux"
 brew "tree"
 brew "unzip"
 brew "wxwidgets"
+brew "yt-dlp"
 
 cask "barrier"
 cask "font-fira-code-nerd-font"
@@ -67,6 +68,7 @@ cask "font-fira-mono-for-powerline"
 cask "font-fira-mono-nerd-font"
 cask "font-hack-nerd-font"
 cask "insomnia"
+cask "signal"
 
 # Archive
 # brew "neovim"
