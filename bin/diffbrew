@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+require 'tempfile'
+
+class PackageSet
+  def initialize
+    @packages = []
+  end
+
+  def all_packages
+    packages.sort
+  end
+
+  def count
+    packages.length
+  end
+
+  def add_package(line)
+    return unless valid?(line)
+
+    @packages << line
+  end
+
+  private
+  attr_reader :packages
+
+  def valid?(package)
+    return false if package[0] == "#"
+    return false if package == ""
+
+    true
+  end
+end
+
+installed = PackageSet.new
+requested = PackageSet.new
+
+
+Tempfile.create do |file|
+  system("brew bundle dump --force --file #{file.path}")
+
+  file.each_line { |line| installed.add_package line.chomp.strip }
+end
+
+Pathname.new("./Brewfile").each_line do |line|
+  requested.add_package line.chomp.strip
+end
+
+puts "Installed: #{installed.count}"
+puts "Requested: #{requested.count}"
+
+only_installed = (installed.all_packages - requested.all_packages)
+
+if only_installed.length > 0
+  puts ""
+  puts "Installed but not requested"
+  puts "-" * 20
+  only_installed.each { |line| puts line }
+end
+
+only_requested = (requested.all_packages - installed.all_packages)
+
+if only_requested.length > 0
+  puts ""
+  puts "Requested but not installed"
+  puts "-" * 20
+  only_requested.each { |line| puts line }
+end
