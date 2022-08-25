@@ -1,0 +1,29 @@
+#!/bin/bash
+
+INSTALL_PATH=$HOME/bin
+
+utilspath=$(echo $(readlink -f $0) | rev | cut -d'/' -f3- | rev)
+toolspath="$utilspath/tools"
+
+mkdir -p $toolspath
+mkdir -p $INSTALL_PATH
+cd $INSTALL_PATH
+
+for f in $(find $toolspath/ -type f -maxdepth 1 -perm +111)
+do
+  tool=$(basename $f)
+
+  if [[ -f "$INSTALL_PATH/$tool" ]]; then
+    echo "Skipping $tool (already exists)"
+  else
+    echo "Setting up $tool"
+    ln -s "$f"
+  fi
+done
+
+if [[ "$PATH" =~ .*"$INSTALL_PATH".* ]]; then
+  echo "Success."
+else
+  echo ""
+  echo "You need to add '$INSTALL_PATH' to your \$PATH."
+fi
