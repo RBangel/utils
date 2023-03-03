@@ -2,6 +2,13 @@
 
 Small scripts that I personally find useful
 
+## Initial setup
+Start by running setup
+
+```bash
+$UTILS_BASE_DIR/bin/setup
+```
+
 ## workon
 
 A tool similar to direnv that adds the abiility to run arbitrary shell commands.
