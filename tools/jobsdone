@@ -1,0 +1,93 @@
+#!/bin/bash
+
+command="$1"
+JOBSDONE_CONFIG="$HOME/.config/jobsdone/config.json"
+JOBSDONE_TMP_CONFIG="$HOME/.config/jobsdone/config.$$.json"
+
+function config() {
+  CONFIG_DIR=$(dirname $JOBSDONE_CONFIG)
+  echo "Ensuring $CONFIG_DIR exists."
+  mkdir -p $CONFIG_DIR
+
+  echo "Creating the config file $JOBSDONE_CONFIG if needed."
+
+  if [[ ! -f $JOBSDONE_CONFIG ]]; then
+    echo '{}' > $JOBSDONE_CONFIG
+  fi
+
+  disable
+}
+
+function disable() {
+  _update_config enable_notify false
+}
+
+function enable() {
+  _update_config enable_notify true
+}
+
+function help() {
+  echo "usage: $0 COMMAND"
+  echo ""
+  echo "commands:"
+  echo "    config    Set up a default configuration (required before use)"
+  echo "    disable   Disable push notifications"
+  echo "    enable    Enable push notifications"
+  echo "    help      Display this help text"
+  echo "    notify    Send a push notification if enabled"
+}
+
+function notify() {
+  enabled=$(jq '.enable_notify' $JOBSDONE_CONFIG)
+  if [[ "$NOTIFY_JOBSDONE" != "" ]]; then
+    enabled="true"
+  fi
+
+  if [[ "$enabled" == "true" ]]; then
+    curl -X POST https://api.pushcut.io/$PUSHCUT_API_KEY/notifications/Jobs%20Done > /dev/null 2>&1
+  fi
+}
+
+function status() {
+  enabled=$(jq '.enable_notify' $JOBSDONE_CONFIG)
+
+  if [[ "$enabled" == "true" ]]; then
+    echo "Notifications are enabled!"
+  else
+    echo "Notifications are disabled."
+  fi
+}
+
+function _ensure_configured() {
+  if [[ ! -f $JOBSDONE_CONFIG ]]; then
+    echo "You must run `$0 config` first."
+    exti -1
+  fi
+}
+
+function _update_config() {
+  key=$1
+  value=$2
+  update_string=". + {\"$key\": $value}"
+
+  # echo "Update: $update_string"
+
+  jq "$update_string" $JOBSDONE_CONFIG > $JOBSDONE_TMP_CONFIG && command mv $JOBSDONE_TMP_CONFIG $JOBSDONE_CONFIG
+}
+
+if [[ "$command" == "config" ]]; then
+  config
+elif [[ "$command" == "disable" ]]; then
+  disable
+elif [[ "$command" == "enable" ]]; then
+  enable
+elif [[ "$command" == "help" ]]; then
+  help
+elif [[ "$command" == "notify" ]]; then
+  notify
+elif [[ "$command" == "status" ]]; then
+  status
+else
+  help
+  exit -1
+fi
