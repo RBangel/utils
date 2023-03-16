@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_PATH=$HOME/bin
+INSTALL_PATH=${ENV_BIN_DIR:-$HOME/bin}
 
 utilspath=$(echo $(readlink -f $0) | rev | cut -d'/' -f3- | rev)
 toolspath="$utilspath/tools"

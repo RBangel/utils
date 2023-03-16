@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ZSHRC=$(readlink ${ZDOTDIR:-$HOME}/.zshrc)
+CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+# LOCAL_CONFIG_HOME=$HOME/.local/config
+
+if [[ $CONFIG_HOME == "$HOME" ]]; then
+  SYSCON_HOME=$CONFIG_HOME/.syscon
+else
+  SYSCON_HOME=$CONFIG_HOME/syscon
+fi
+
+if [[ $? -eq 0 && $ZSHRC != "" ]]; then
+  sed -i -- "s:# Customize to your needs...:if [[ -e $SYSCON_HOME/zshrc ]]; then source $SYSCON_HOME/zshrc; fi:" $ZSHRC
+fi
+
+# Update app store applications
+echo "Updating App Store apps"
+mas upgrade

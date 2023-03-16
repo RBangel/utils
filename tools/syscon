@@ -1,0 +1,36 @@
+#!/bin/bash
+
+SYSCON_HOME=$XDG_CONFIG_HOME/syscon
+
+function brew_the_things {
+  echo "Checking homebrew"
+  list=$(brew bundle cleanup)
+
+  if [[ $(echo $list | wc -l) -gt 1 ]]; then
+    echo $list
+    echo
+    while true; do
+        read -p "Do you wish to uninstall those listed? " yn
+        case $yn in
+            [Yy]* ) brew bundle cleanup --force; break;;
+            [Nn]* ) break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+    echo
+  fi
+
+  check=$(brew bundle check)
+  if [[ $? -ne 0 ]]; then
+    brew bundle install
+    echo
+  fi
+}
+
+if [[ "$1" == "update" ]]; then
+  cd $SYSCON_HOME
+
+  brew_the_things
+  echo "Checking asdf"
+  ./plugins/asdf
+fi

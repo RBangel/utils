@@ -6,16 +6,13 @@ JOBSDONE_TMP_CONFIG="$HOME/.config/jobsdone/config.$$.json"
 
 function config() {
   CONFIG_DIR=$(dirname $JOBSDONE_CONFIG)
-  echo "Ensuring $CONFIG_DIR exists."
   mkdir -p $CONFIG_DIR
 
-  echo "Creating the config file $JOBSDONE_CONFIG if needed."
-
   if [[ ! -f $JOBSDONE_CONFIG ]]; then
+    echo "Creating the config file $JOBSDONE_CONFIG if needed."
     echo '{}' > $JOBSDONE_CONFIG
+    disable
   fi
-
-  disable
 }
 
 function disable() {
@@ -38,12 +35,14 @@ function help() {
 }
 
 function notify() {
+  config
   enabled=$(jq '.enable_notify' $JOBSDONE_CONFIG)
   if [[ "$NOTIFY_JOBSDONE" != "" ]]; then
     enabled="true"
   fi
 
   if [[ "$enabled" == "true" ]]; then
+    echo "Jobs Done!"
     curl -X POST https://api.pushcut.io/$PUSHCUT_API_KEY/notifications/Jobs%20Done > /dev/null 2>&1
   fi
 }
