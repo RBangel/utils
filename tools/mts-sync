@@ -1,0 +1,40 @@
+#!/bin/bash
+
+source $ENV_LIB_DIR/stdlib.bash
+
+require_var MTS_PLEX_SERVER
+require_var MTS_PLEX_BASE_PATH
+require_var MTS_MOVIE_SYNC_PATH
+require_var MTS_TV_SYNC_PATH
+
+function sync_movies {
+  _check_sync_path $MTS_MOVIE_SYNC_PATH
+
+  dest_path="$MTS_PLEX_BASE_PATH/Movies"
+
+  dest="${MTS_PLEX_SERVER}:${dest_path}"
+  rsync -avzh --progress "$MTS_MOVIE_SYNC_PATH/" "$dest"
+}
+
+function sync_tv {
+  _check_sync_path $MTS_TV_SYNC_PATH
+
+  dest_path=$(_quote "$MTS_PLEX_BASE_PATH/TV Shows")
+
+  dest="${MTS_PLEX_SERVER}:${dest_path}"
+  rsync -avzh --progress "$MTS_TV_SYNC_PATH/" "$dest"
+}
+
+function _quote () {
+  local quoted=${1//\'/\'\\\'\'};
+  printf "'%s'" "$quoted"
+}
+
+function _check_sync_path {
+  if [[ ! -d "$1" ]]; then
+    mkdir -p "$1"
+  fi
+}
+
+sync_movies
+sync_tv

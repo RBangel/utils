@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Media Tool Set
+# Tools for ripping & transcoding
+
+VERSION=0.0.1
+EXIT_RC=255
+
+export MTS_DATA_DIR="$HOME/Movies"
+export MTS_MOVIE_SYNC_PATH="$MTS_DATA_DIR/SyncMovies"
+export MTS_TV_SYNC_PATH="$MTS_DATA_DIR/SyncTV"
+
+export MTS_PLEX_SERVER="library.local"
+export MTS_PLEX_BASE_PATH="/volume1/media"
+
+function doctor {
+  if [[ "$ENV_BIN_DIR" == "" ]]; then echo 'ENV_BIN_DIR must be set'; EXIT_RC=1; fi
+}
+
+function help {
+  progname=$(basename $0)
+
+  echo "version: $VERSION"
+  echo
+  echo "$progname add                  queue movie/tv to be added to plex"
+  echo "$progname doctor               check configuration"
+  echo "$progname help                 show this help text"
+  echo "$progname mediainfo            scan media file for title info"
+  echo "$progname setup                create config and symlinks as needed"
+  echo "$progname sync                 transfer media to the plex library"
+}
+
+if [[ "$1" == "doctor" ]]; then
+  EXIT_RC=0
+  doctor
+elif [[ "$1" == "help" ]]; then
+  EXIT_RC=0
+  help
+elif [[ "$1" == "add" ]]; then
+  shift
+  # putmovie "$@"
+  mts-add "$@"
+  EXIT_RC=$?
+elif [[ "$1" == "mediainfo" ]]; then
+  EXIT_RC=0
+  shift
+  mts-mediainfo "$@"
+elif [[ "$1" == "setup" ]]; then
+  if [[ "$ENV_BIN_DIR" == "" ]]; then echo 'ENV_BIN_DIR must be set'; exit 1; fi
+  ln -s /Applications/MakeMKV.app/Contents/MacOS/makemkvcon $ENV_BIN_DIR/makemkvcon
+  EXIT_RC=0
+elif [[ "$1" == "sync" ]]; then
+  mts-sync
+  EXIT_RC=$?
+else
+  EXIT_RC=-1
+  help
+fi
+
+exit $EXIT_RC

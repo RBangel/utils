@@ -1,0 +1,135 @@
+#!/bin/bash
+
+# set -x
+
+source $ENV_LIB_DIR/stdlib.bash
+require_var MTS_DATA_DIR
+require_var MTS_MOVIE_SYNC_PATH
+require_var MTS_TV_SYNC_PATH
+
+function add_movie {
+  movie_short_path="$SRC_TITLE/$DEST_FILENAME"
+  sync_movie_path="$MTS_MOVIE_SYNC_PATH/$movie_short_path"
+
+  mkdir -p "$(dirname "$sync_movie_path")"
+  cp "$SRC_FULL_PATH" "$sync_movie_path"
+  echo "Added '${SRC_FULL_PATH}'"
+}
+
+function add_tv_show {
+  show=$SRC_TITLE
+
+  echo $SRC_FILENAME
+  ruby_cmd=$(echo "puts PlexTools.name_data(\"${SRC_FILENAME}\", json: true)")
+  echo $ruby_cmd
+
+  show_data=$(ruby -rplex_tools -e "$ruby_cmd")
+
+  if [[ "$show_data" == "" ]]; then
+    echo "Failed to load show data"
+    exit 2
+  fi
+
+  show_name=$(echo $show_data | jq -r '.show')
+  show_season="Season $(echo $show_data | jq -r '.season')"
+  show_filename=$(echo $show_data | jq -r '.filename')
+
+  show_pkg="${show_name}/${show_season}/${show_filename}"
+  sync_show_path="${MTS_TV_SYNC_PATH}/${show_pkg}"
+
+  mkdir -p "$(dirname "$sync_show_path")"
+  cp "$SRC_FULL_PATH" "$sync_show_path"
+  echo "Added '${show_filename}'"
+}
+
+function _is_tv {
+  echo "$1" | rg -e '- S\d\dE\d\d -' >/dev/null 2>&1
+  [[ $? -eq 0 ]] && echo "true" || echo "false"
+}
+
+function _find_source_path {
+  if [[ -f "$1" ]]; then
+    echo $(realpath "$1")
+  else
+    echo "Could not identify source file"
+    exit -1 
+  fi
+}
+
+function _check_exit_code {
+  status=$?
+  if [[ $status -ne 0 ]]; then
+    echo "$1"
+    exit $status
+  fi
+}
+
+SOURCE="$1"
+
+SRC_FULL_PATH=$(_find_source_path "$SOURCE")
+_check_exit_code "$SRC_FULL_PATH"
+
+SRC_PATH="$(dirname "$SRC_FULL_PATH")"
+SRC_FILENAME="$(basename "$SRC_FULL_PATH")"
+DEST_FILENAME="$SRC_FILENAME"
+SRC_TITLE="${SRC_FILENAME%.*}"
+
+is_tv=$(_is_tv "$SRC_TITLE")
+_check_exit_code "$is_tv"
+
+if [[ "$is_tv" == "true" ]]; then
+  add_tv_show
+else
+  add_movie
+fi
+
+
+
+
+
+# quote () {
+#   local quoted=${1//\'/\'\\\'\'};
+#   printf "'%s'" "$quoted"
+# }
+
+# if [[ -e "$1" ]]; then
+#   title=$(basename $1)
+#   src_path=$(dirname $1)
+# else
+#   title="$1"
+#   src_path="$(pwd)"
+# fi
+# 
+# if [[ $title == "" ]]; then
+#   match=$(find $src_path -type f | rg -ie '.*.(mp4|mkv|avi)' | fzf)
+#   src_path=$(dirname $match)
+#   title=$(basename $match)
+# fi
+# 
+# if [[ $title == "" ]]; then
+#   echo "Title not found"
+#   exit -1
+# fi
+# 
+# title_name=${title%.*}
+# cd $SYNC_PATH
+# 
+# mkdir -p $title_name
+# cd $title_name
+# 
+# cp "$src_path/$title" .
+# 
+# if [[ $? -eq 0 ]]; then
+#   echo sync_tv
+# else
+#   echo sync_movies
+# fi
+
+# src="$SYNC_PATH/$title_name/$title"
+
+# source="mcpolemic.com:'/media/storage/Movies/$1'"
+# dest_title=$(quote "/volume1/media/Movies")
+# dest="library.local:$dest_title"
+# 
+# rsync -avzh --progress "$SYNC_PATH/" "$dest"
+
