@@ -2,8 +2,29 @@
 
 SYSCON_HOME=$XDG_CONFIG_HOME/syscon
 
+function build_brewfile {
+  echo "Building Brewfile"
+  base_file="$SYSCON_HOME/Brewfile.base"
+  local_file="$XDG_CONFIG_HOME/Brewfile.local"
+  output_file="$SYSCON_HOME/Brewfile"
+
+  if [[ -f $output_file ]]; then
+    rm -f $output_file
+  fi
+
+  cp $base_file $output_file
+
+  if [[ -f $local_file ]]; then
+    cat $local_file >> $output_file
+  fi
+}
+
 function brew_the_things {
   echo "Checking homebrew"
+
+  cd $SYSCON_HOME
+  build_brewfile
+
   list=$(brew bundle cleanup)
 
   if [[ $(echo $list | wc -l) -gt 1 ]]; then
@@ -28,9 +49,7 @@ function brew_the_things {
 }
 
 if [[ "$1" == "update" ]]; then
-  cd $SYSCON_HOME
-
   brew_the_things
   echo "Checking asdf"
-  ./plugins/asdf
+  # ./plugins/asdf
 fi
