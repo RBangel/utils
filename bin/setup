@@ -9,7 +9,7 @@ mkdir -p $toolspath
 mkdir -p $INSTALL_PATH
 cd $INSTALL_PATH
 
-for f in $(find $toolspath/ -type f -maxdepth 1 -perm +111)
+for f in $(find $toolspath/ -maxdepth 1 -type f \( -perm -u=x -o -perm -g=x -o -perm -o=x \))
 do
   tool=$(basename $f)
 
