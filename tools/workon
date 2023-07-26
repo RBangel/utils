@@ -52,10 +52,10 @@ run_project() {
 
   if [[ -f "$PROJECT_BASE_DIR/$CONFIG_FILE_NAME" ]]; then
     cd $PROJECT_BASE_DIR
-    PROJECT_ROOT_DIR=$PROJECT_BASE_DIR
+    export PROJECT_ROOT_DIR=$(readlink $PROJECT_BASE_DIR)
     cp $CONFIG_FILE_NAME ~/.workon/.workon.conf
 
-    cd $(readlink $PROJECT_ROOT_DIR)
+    cd $PROJECT_ROOT_DIR
     exec $SHELL
   else
     echo "The $CURRENT_PROJECT project is not defined. Please add it first."
