@@ -17,10 +17,12 @@ function config() {
 
 function disable() {
   _update_config enable_notify false
+  echo "Jobsdone is disabled."
 }
 
 function enable() {
   _update_config enable_notify true
+  echo "Jobsdone is enabled."
 }
 
 function help() {
