@@ -1,0 +1,65 @@
+#!/bin/bash
+
+BARD_DOCS_DIR="$HOME/Notes"
+SCRATCH_DOC="$BARD_DOCS_DIR/scratchpad.md"
+
+function help {
+  app=$(basename $0)
+
+  cat << EOTEXT
+usage: $app
+utility to manage stories and notes
+
+core commands:
+  edit         edit the bard script
+  help         show this help message
+  scratch      open the scratchpad
+EOTEXT
+
+  addon_shown=false
+
+  for addon in $(hash | grep $app); do
+    if [[ "$addon_shown" == "false" ]]; then
+      echo ""
+      echo "addon commands:"
+      addon_shown=true
+    fi
+
+    printf "  %10s %s\n" $(basename $addon) "---"
+  done
+}
+
+function invalid_action {
+  app=$(basename $0)
+  echo "'$1' is not a $app command. see '$app help'."
+  exit -1
+}
+
+function scratch {
+  if [[ "$EDITOR" == "" ]]; then
+    echo '$EDITOR must be set'
+    exit -1
+  fi
+
+  $EDITOR $SCRATCH_DOC
+}
+
+action=${1:-help}
+shift
+
+if [[ "$action" == "edit" ]]; then
+  if [[ "$EDITOR" == "" ]]; then
+    echo '$EDITOR must be set'
+    exit -1
+  fi
+
+  exec $EDITOR $(which $0)
+elif [[ "$action" == "help" ]]; then
+  help $@
+elif [[ "$action" == "scratch" ]]; then
+  scratch $@
+else
+  subaction="$(basename $0)-${action}"
+  command -v $subaction >/dev/null 2>&1 || invalid_action $action
+  exec $subaction
+fi
