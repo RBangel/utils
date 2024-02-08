@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# DEPRECATED before v1
+#   Reason: This should be part of syscon, not it's own project
+#
+# Personal Environment Manager
+#
+# Just add a named bin to the utils repo (initial version goal)
+#
+
+set -o errexit   # abort on nonzero exitstatus
+set -o nounset   # abort on unbound variable
+set -o pipefail  # don't hide errors within pipes
+
+trap end_cleanup EXIT ERR
+
+IFS=$'\t\n'
+script_name=$(basename "${0}")
+script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+bin_path=${ENV_BIN_DIR:-$HOME/bin}
+
+readonly bin_path script_name script_dir
+
+##### SCRIPT TOOLS #####
+
+__script_tools__command_list=()
+
+add_command() {
+  local command_name="$1"
+  local command_desc="$2"
+  local command_help="${3:-""}"
+
+  local packed="${command_name};${command_desc};${command_help}"
+  __script_tools__command_list+=(${packed})
+}
+
+### END SCRIPT TOOLS ###
+
+# Notes
+# ${var#*SubStr}  # drops substring from start of string up to first occurrence of `SubStr`
+# ${var##*SubStr} # drops substring from start of string up to last occurrence of `SubStr`
+# ${var%SubStr*}  # drops substring from last occurrence of `SubStr` to end of string
+# ${var%%SubStr*} # drops substring from first occurrence of `SubStr` to end of string
+
+function error {
+  local red=""
+  local reset=""
+
+  printf "${red}!!! %s${reset}\\n" "${*}" 1>&2
+}
+
+function end_cleanup {
+  result=$?
+  exit ${result}
+}
+
+function show_help {
+  local displayed_usage=false
+  local commands=()
+
+  # printf "  ppm <util_to_add>\n"
+  # printf "  %s\n" "ppm add <util to add>"
+
+  # readarray -t sorted_entries < <(printf '%s\n' "${__script_tools__command_list[@]}" | sort)
+  # IFS=$'\n' read -d '' -r -a sorted_entries < <(printf '%s\n' "${__script_tools__command_list[@]}" | sort)
+  # echo ${sorted_entries}
+  for entry in ${__script_tools__command_list}; do
+    # local name=${entry%%;*}
+    # entry=${entry#$name;}
+
+    # local desc=${entry%%;*}
+    # entry=${entry#$desc;}
+    commands+=(entry)
+
+    local help=${entry##*;}
+    if [[ "${help}" != "" ]]; then
+      if [[ "${displayed_usage}" == false ]]; then
+        printf "Usage:\n"
+      fi
+
+      printf "  ${script_name} %s\n" "${help}"
+    fi
+  done
+
+  if [[ "${displayed_usage}" == false ]]; then
+    printf "Usage: ${script_name} help\n"
+  fi
+
+  printf "\nCommands:\n"
+  for entry in ${commands}; do
+    local name=${entry%%;*}
+    entry=${entry#$name;}
+
+    local desc=${entry%%;*}
+    entry=${entry#$desc;}
+
+    printf "  %-10s%s\n" "${name}" "${desc}"
+  done
+}
+
+check_util() {
+  local util="$1"
+
+  if [[ "$util" == "" ]]; then
+    show_help
+    exit -1
+  elif [[ ! -x "$util" ]]; then
+    error "${util} is not executable!"
+    printf "\n"
+    show_help
+  else
+    printf "You're good :)"
+  fi
+}
+
+# add_command "add" "Add specified utility as a managed tool" "add <util to add>"
+add_command "add" "Add specified utility as a managed tool"
+add() {
+  echo "ran add"
+}
+
+function main {
+  local util="$1"
+  check_util "${util}"
+
+  # echo "${#}: ${@}"
+}
+
+main "${@}"
