@@ -1,0 +1,5 @@
+#!/bin/bash
+
+MAIN=$(git identify)
+git branch -d $(git branch --merged=$MAIN | grep -v $MAIN)
+git fetch --prune

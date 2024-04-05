@@ -1,0 +1,111 @@
+#! /bin/zsh
+
+set -e
+
+# bash emulation needed for PATH; not sure why???
+emulate -LR bash
+
+# get the full directory list from the Halo working directory
+typeset -a SERVICE_LIST
+SERVICE_LIST=($(ls $WORK_DIR_PATH | grep -v '^d'))
+
+# specify a main branch, other than 'main', for various repos
+declare -A BRANCH_LIST
+BRANCH_LIST[has-develop]="develop"
+
+# collect warnings to show at the end
+WARNINGS=()
+
+# text color constants
+# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+RED_TEXT='\033[0;31m'
+GREEN_TEXT='\033[0;32m'
+GRAY_TEXT='\033[0;37m'
+DEFAULT_TEXT='\033[0m'
+
+function run_command {
+  SERVICE=$1
+  CMD="${@:2}"
+
+  OUTPUT=$($CMD 2>&1)
+  EXIT_CODE=$?
+
+  if [ $EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo -e "${RED_TEXT}ERROR!${DEFAULT_TEXT} Cannot execute: $CMD"
+    echo "Repository: $SERVICE"
+    echo "Output: $OUTPUT"
+
+    return 17 # no real meaning, i just like prime numbers
+  fi
+  true
+}
+
+function warn_uncommitted_changes {
+  WARNINGS+=("$SERVICE")
+  echo -e "  ${RED_TEXT}WARNING!${DEFAULT_TEXT} Uncommitted Changes"
+  echo -e "  - repo: $SERVICE"
+  echo -e "  - skipping updates"
+}
+
+function fetch_and_merge {
+  SERVICE=$1
+  BRANCH=${BRANCH_LIST[$SERVICE]:-main}
+
+  echo -e " ${GRAY_TEXT}- fetch latest from '$BRANCH'${DEFAULT_TEXT}"
+  run_command $SERVICE git fetch origin $BRANCH
+
+  echo -e " ${GRAY_TEXT}- merging '$BRANCH' into current branch${DEFAULT_TEXT}"
+  run_command $SERVICE git merge origin/$BRANCH --ff-only
+}
+
+function update_repo {
+  SERVICE=$1
+  REPO_FOLDER="$WORK_DIR_PATH/$SERVICE"
+
+  # don't do anything if this isn't a git repo folder
+  if [ ! -d "$REPO_FOLDER/.git" ]; then
+    return
+  fi
+
+  pushd $REPO_FOLDER > /dev/null
+
+  echo -e "${GREEN_TEXT}UPDATING:${DEFAULT_TEXT} $SERVICE"
+  # check for uncommited changes
+  if [[ $(git status --porcelain) ]]; then
+    warn_uncommitted_changes $SERVICE
+  else
+    fetch_and_merge $SERVICE
+  fi
+  echo ""
+
+  popd > /dev/null
+}
+
+function show_warning_count {
+  WARNING_COUNT=${#WARNINGS[@]}
+
+  if [ $WARNING_COUNT -gt 0 ]; then
+    echo ""
+    echo -e "${RED_TEXT}REPO WARNINGS:${DEFAULT_TEXT}"
+    echo "The following could not be updated"
+    echo "due to local, uncommitted changes."
+    echo "Please stash, commit, or remove the"
+    echo "changes before updating these repos:"
+    echo ""
+    for repo in ${WARNINGS[@]}; do
+      echo " - $repo"
+    done
+  fi
+}
+
+# EXECUTE THE SCRIPT
+# ------------------
+
+echo "Updating Repositories"
+echo ""
+for service in ${SERVICE_LIST[@]}; do
+  update_repo $service
+done
+
+show_warning_count

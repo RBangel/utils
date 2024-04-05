@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cat .git/refs/remotes/origin/HEAD | sed -e 's/^.*\///'

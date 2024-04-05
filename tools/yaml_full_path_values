@@ -1,0 +1,11 @@
+#!/bin/bash
+
+output_full_path_values() {
+  cat $1 | yq e '.. | select(. == "*") | {(path | join(".")): .}'
+}
+
+file=${1--} # POSIX-compliant; ${1:--} can be used either.
+while IFS= read -r line; do
+  # printf '%s\n' "$line" # Or: env POSIXLY_CORRECT=1 echo "$line"
+  output_full_path_values "$line"
+done < <(cat -- "$file")
